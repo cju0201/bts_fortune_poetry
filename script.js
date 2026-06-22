@@ -326,6 +326,14 @@ initFortuneQueue();
 initFortuneHistory();
 preloadPromise = preloadUniverseAssets();
 
+document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+        bgMusic.pause();
+    } else {
+        bgMusic.play().catch(() => {});
+    }
+});
+
 // 點擊開始
 if (startBtn) {
     startBtn.disabled = true;
