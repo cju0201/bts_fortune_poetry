@@ -326,16 +326,24 @@ initFortuneQueue();
 initFortuneHistory();
 preloadPromise = preloadUniverseAssets();
 
-function stopMusic() {
-    if (!bgMusic) return;
+function forceStopMusic() {
+    const audio = document.getElementById('bg-music');
+    if (!audio) return;
 
-    bgMusic.pause();
-    bgMusic.currentTime = 0;   // 可選，直接回到開頭
+    audio.pause();
+    audio.currentTime = 0;
+    audio.muted = true;
+    audio.src = audio.src;
 }
 
-document.addEventListener("visibilitychange", stopMusic);
-window.addEventListener("pagehide", stopMusic);
-window.addEventListener("blur", stopMusic);
+['visibilitychange', 'pagehide', 'blur', 'freeze'].forEach(evt => {
+    window.addEventListener(evt, forceStopMusic);
+    document.addEventListener(evt, forceStopMusic);
+});
+
+setInterval(() => {
+    if (document.hidden) forceStopMusic();
+}, 1000);
 
 // 點擊開始
 if (startBtn) {
