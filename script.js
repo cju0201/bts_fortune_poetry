@@ -362,25 +362,43 @@ initFortuneHistory();
 preloadPromise = preloadUniverseAssets();
 
 function forceStopMusic() {
-    const audio = document.getElementById('bg-music');
-    if (!audio) return;
+    if (!bgMusic) return;
 
-    audio.pause();
-    audio.currentTime = 0;
+    bgMusic.pause();
+    bgMusic.currentTime = 0;
 }
 
-document.addEventListener("visibilitychange", () => {
+function handleMusicVisibility() {
     if (!bgMusic) return;
 
     if (document.hidden) {
-        forceStopMusic();
-    } else {
-        bgMusic.muted = false;
-        bgMusic.play().catch(err => {
-            console.log("恢復播放失敗：", err);
-        });
+        bgMusic.pause();
+        bgMusic.currentTime = 0;
+        return;
     }
-});
+
+    bgMusic.muted = false;
+
+    // iOS 安全播放模式
+    const tryPlay = () => {
+        const p = bgMusic.play();
+        if (p !== undefined) {
+            p.catch(() => {
+                // iOS 如果失敗，等下一次 user interaction
+                console.log("iOS play blocked, waiting gesture");
+            });
+        }
+    };
+
+    // 確保 ready
+    if (bgMusic.readyState >= 2) {
+        tryPlay();
+    } else {
+        bgMusic.addEventListener("canplay", tryPlay, { once: true });
+    }
+}
+
+document.addEventListener("visibilitychange", handleMusicVisibility);
 
 // 點擊開始
 if (startBtn) {
