@@ -367,18 +367,36 @@ function forceStopMusic() {
 
     audio.pause();
     audio.currentTime = 0;
-    audio.muted = true;
-    audio.src = audio.src;
 }
 
-['visibilitychange', 'pagehide', 'blur', 'freeze'].forEach(evt => {
-    window.addEventListener(evt, forceStopMusic);
-    document.addEventListener(evt, forceStopMusic);
+document.addEventListener("visibilitychange", () => {
+
+    if (!bgMusic) return;
+
+    if (document.hidden) {
+
+        bgMusic.pause();
+        bgMusic.currentTime = 0;
+
+    } else {
+
+        bgMusic.muted = false;
+
+        bgMusic.play().catch(() => {});
+    }
+
 });
 
-setInterval(() => {
-    if (document.hidden) forceStopMusic();
-}, 1000);
+document.addEventListener("visibilitychange", () => {
+    if (!bgMusic) return;
+
+    if (document.hidden) {
+        bgMusic.pause();
+        bgMusic.currentTime = 0;
+    } else {
+        bgMusic.play().catch(() => {});
+    }
+});
 
 // 點擊開始
 if (startBtn) {
