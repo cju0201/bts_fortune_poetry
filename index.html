@@ -107,24 +107,17 @@
           </div>
 
           <form class="army-wall-form" id="army-wall-form">
-            <fieldset class="message-targets" aria-label="留言對象">
-              <legend>想把留言送給誰？</legend>
-              <label><input type="radio" name="army-message-target" value="站主" checked> <span>給站主</span></label>
-              <label><input type="radio" name="army-message-target" value="防彈"> <span>給防彈</span></label>
-              <label><input type="radio" name="army-message-target" value="自己"> <span>給自己</span></label>
-              <label><input type="radio" name="army-message-target" value="阿米們"> <span>給阿米們</span></label>
-            </fieldset>
+            <div class="message-prompts" aria-label="快速留言靈感">
+              <button type="button" data-target="站主" data-prompt="謝謝你做了這個宇宙籤詩，今天也被治癒了。" aria-pressed="true">給站主</button>
+              <button type="button" data-target="防彈" data-prompt="防彈啊，謝謝你們讓我在辛苦的日子裡也能繼續相信自己。" aria-pressed="false">給防彈</button>
+              <button type="button" data-target="自己" data-prompt="親愛的自己，慢慢來也沒關係，你已經很努力了。" aria-pressed="false">給自己</button>
+              <button type="button" data-target="阿米們" data-prompt="給每一位正在努力的阿米：今天也辛苦了，我們一起慢慢變好。" aria-pressed="false">給阿米們</button>
+            </div>
             <label class="message-field" for="army-message-input">
               <span>想對站主、防彈、自己，或阿米們說什麼？</span>
               <textarea id="army-message-input" maxlength="180" rows="4" placeholder="把心裡的話留在這片紫色星空裡..."></textarea>
             </label>
             <div class="army-wall-tools">
-              <div class="message-prompts" aria-label="快速留言靈感">
-                <button type="button" data-target="站主" data-prompt="謝謝你做了這個宇宙籤詩，今天也被治癒了。">給站主</button>
-                <button type="button" data-target="防彈" data-prompt="防彈啊，謝謝你們讓我在辛苦的日子裡也能繼續相信自己。">給防彈</button>
-                <button type="button" data-target="自己" data-prompt="親愛的自己，慢慢來也沒關係，你已經很努力了。">給自己</button>
-                <button type="button" data-target="阿米們" data-prompt="給每一位正在努力的阿米：今天也辛苦了，我們一起慢慢變好。">給阿米們</button>
-              </div>
               <div class="army-wall-actions">
                 <span id="army-message-limit">0/180</span>
                 <button class="btn army-wall-submit" type="submit">送出留言</button>
@@ -149,7 +142,7 @@
     <script>
       window.BTS_ARMY_WALL_API_URL = 'https://bts-army-wall-api.bts-army-wall-api.workers.dev';
     </script>
-    <script src="./script.js?v=20260624-army-wall-shared"></script>
+    <script src="./script.js?v=20260624-army-wall-live"></script>
 
   </body>
   
