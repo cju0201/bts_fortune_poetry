@@ -107,15 +107,23 @@
           </div>
 
           <form class="army-wall-form" id="army-wall-form">
+            <fieldset class="message-targets" aria-label="留言對象">
+              <legend>想把留言送給誰？</legend>
+              <label><input type="radio" name="army-message-target" value="站主" checked> <span>給站主</span></label>
+              <label><input type="radio" name="army-message-target" value="防彈"> <span>給防彈</span></label>
+              <label><input type="radio" name="army-message-target" value="自己"> <span>給自己</span></label>
+              <label><input type="radio" name="army-message-target" value="阿米們"> <span>給阿米們</span></label>
+            </fieldset>
             <label class="message-field" for="army-message-input">
-              <span>想對我、防彈，或正在努力的自己說什麼？</span>
+              <span>想對站主、防彈、自己，或阿米們說什麼？</span>
               <textarea id="army-message-input" maxlength="180" rows="4" placeholder="把心裡的話留在這片紫色星空裡..."></textarea>
             </label>
             <div class="army-wall-tools">
               <div class="message-prompts" aria-label="快速留言靈感">
-                <button type="button" data-prompt="謝謝你做了這個宇宙籤詩，今天也被治癒了。">給站主</button>
-                <button type="button" data-prompt="防彈啊，謝謝你們讓我在辛苦的日子裡也能繼續相信自己。">給防彈</button>
-                <button type="button" data-prompt="親愛的自己，慢慢來也沒關係，你已經很努力了。">給自己</button>
+                <button type="button" data-target="站主" data-prompt="謝謝你做了這個宇宙籤詩，今天也被治癒了。">給站主</button>
+                <button type="button" data-target="防彈" data-prompt="防彈啊，謝謝你們讓我在辛苦的日子裡也能繼續相信自己。">給防彈</button>
+                <button type="button" data-target="自己" data-prompt="親愛的自己，慢慢來也沒關係，你已經很努力了。">給自己</button>
+                <button type="button" data-target="阿米們" data-prompt="給每一位正在努力的阿米：今天也辛苦了，我們一起慢慢變好。">給阿米們</button>
               </div>
               <div class="army-wall-actions">
                 <span id="army-message-limit">0/180</span>
@@ -129,10 +137,7 @@
             <div class="army-message-list" id="army-message-list"></div>
           </div>
 
-          <div class="army-wall-footer">
-            <p>匿名留言只會保存在目前這台裝置的瀏覽器中。</p>
-            <button type="button" id="army-wall-clear">清空本機留言</button>
-          </div>
+          <p class="army-wall-note" id="army-wall-note">留言會匿名顯示在留言牆上。</p>
         </section>
     </div>
 
@@ -141,7 +146,10 @@
     <p>© 2026 防彈宇宙籤詩 INC. ALL RIGHTS RESERVED CJU.</p>
     <p>本平台非官方關聯，僅作為 A.R.M.Y 在宇宙繁星軌道中聆聽音樂</p>
   </footer>
-    <script src="./script.js?v=20260624-army-wall"></script>
+    <script>
+      window.BTS_ARMY_WALL_API_URL = '';
+    </script>
+    <script src="./script.js?v=20260624-army-wall-shared"></script>
 
   </body>
   
