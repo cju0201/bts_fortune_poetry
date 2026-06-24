@@ -327,6 +327,9 @@ let preloadPromise = Promise.resolve();
 let assetsReady = false;
 let armyMessagesCache = [];
 let armyWallLoadedFromApi = false;
+let selectedArmyMessageTarget = '站主';
+let armyWallRefreshTimer = null;
+let isArmyWallRefreshing = false;
 
 const bgMusic = document.getElementById('bg-music');
 const startBtn = document.getElementById('start-btn');
@@ -360,8 +363,29 @@ const FORTUNE_QUEUE_KEY = 'btsUniverseFortuneQueue';
 const FORTUNE_HISTORY_KEY = 'btsUniverseFortuneHistory';
 const ARMY_WALL_KEY = 'btsArmyMessageWall';
 const ARMY_WALL_API_URL = window.BTS_ARMY_WALL_API_URL || '';
-const ARMY_BOMB_AVATAR = './assets/army-bomb.svg';
 const ARMY_MESSAGE_TARGETS = ['站主', '防彈', '自己', '阿米們'];
+const ARMY_BOMB_AVATAR_SVG = `
+<svg class="army-message-avatar-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="阿米棒頭像">
+  <defs>
+    <radialGradient id="army-avatar-globe" cx="40%" cy="28%" r="66%">
+      <stop offset="0%" stop-color="#fff"/>
+      <stop offset="48%" stop-color="#f5e7ff"/>
+      <stop offset="100%" stop-color="#b996ff"/>
+    </radialGradient>
+    <linearGradient id="army-avatar-handle" x1="42" y1="54" x2="86" y2="122" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#f8f1ff"/>
+      <stop offset="55%" stop-color="#cdb6ff"/>
+      <stop offset="100%" stop-color="#7b4dff"/>
+    </linearGradient>
+  </defs>
+  <circle cx="64" cy="34" r="27" fill="#d8c3ff" opacity=".28"/>
+  <circle cx="64" cy="34" r="23" fill="url(#army-avatar-globe)" stroke="#fff" stroke-width="4"/>
+  <path d="M48 54h32l5 9H43z" fill="#efe5ff" stroke="#7b4dff" stroke-width="3" stroke-linejoin="round"/>
+  <rect x="51" y="61" width="26" height="50" rx="10" fill="url(#army-avatar-handle)" stroke="#4a148c" stroke-width="3"/>
+  <path d="M58 70h12M58 80h12" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".8"/>
+  <path d="M50 114h28" stroke="#c5a059" stroke-width="5" stroke-linecap="round"/>
+  <path d="M88 21l8-8M97 36h12M32 21l-8-8M21 36H9" stroke="#f2d583" stroke-width="5" stroke-linecap="round"/>
+</svg>`;
 const MAX_HISTORY_ITEMS = 10;
 const MAX_ARMY_MESSAGES = 80;
 const ARMY_MESSAGE_LIMIT = 180;
@@ -711,7 +735,11 @@ async function initArmyWall() {
 
     if (ARMY_WALL_API_URL) {
         await refreshSharedArmyMessages();
-        window.setInterval(refreshSharedArmyMessages, 30000);
+        armyWallRefreshTimer = window.setInterval(refreshSharedArmyMessages, 5000);
+        window.addEventListener('focus', refreshSharedArmyMessages);
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) refreshSharedArmyMessages();
+        });
     }
 }
 
@@ -740,8 +768,15 @@ async function addArmyMessage() {
 
     if (ARMY_WALL_API_URL) {
         try {
-            await postSharedArmyMessage(message);
-            await refreshSharedArmyMessages();
+            const sharedMessages = await postSharedArmyMessage(message);
+            if (sharedMessages.length) {
+                armyWallLoadedFromApi = true;
+                armyMessagesCache = sharedMessages;
+                saveLocalArmyMessages(sharedMessages);
+                renderArmyWall();
+            } else {
+                await refreshSharedArmyMessages();
+            }
         } catch (error) {
             updateArmyWallNote('留言已先保存在這台裝置，雲端留言牆暫時連不上。');
         }
@@ -791,7 +826,7 @@ function renderArmyWall() {
 
     armyMessageListEl.innerHTML = messages.map(message => `
         <article class="army-message-card">
-            <img class="army-message-avatar" src="${ARMY_BOMB_AVATAR}" alt="阿米棒頭像" loading="lazy">
+            <div class="army-message-avatar" aria-hidden="true">${ARMY_BOMB_AVATAR_SVG}</div>
             <div>
                 <div class="army-message-meta">
                     <span class="army-message-name">阿米${message.number}號</span>
@@ -805,6 +840,8 @@ function renderArmyWall() {
 }
 
 async function refreshSharedArmyMessages() {
+    if (isArmyWallRefreshing) return;
+    isArmyWallRefreshing = true;
     try {
         const messages = await fetchSharedArmyMessages();
         armyWallLoadedFromApi = true;
@@ -814,6 +851,8 @@ async function refreshSharedArmyMessages() {
         updateArmyWallNote('留言會匿名顯示在留言牆上，所有阿米都能看到彼此留下的話。');
     } catch (error) {
         updateArmyWallNote('目前顯示這台裝置保留的留言，雲端留言牆暫時連不上。');
+    } finally {
+        isArmyWallRefreshing = false;
     }
 }
 
@@ -836,6 +875,11 @@ async function postSharedArmyMessage(message) {
         })
     });
     if (!response.ok) throw new Error('留言送出失敗');
+    const data = await response.json().catch(() => ({}));
+    if (Array.isArray(data)) return normalizeArmyMessages(data);
+    if (Array.isArray(data.messages)) return normalizeArmyMessages(data.messages);
+    if (data.message) return normalizeArmyMessages([data.message, ...readArmyMessages()]);
+    return [];
 }
 
 function normalizeArmyMessages(messages) {
@@ -854,14 +898,17 @@ function normalizeArmyMessages(messages) {
 }
 
 function getSelectedArmyTarget() {
-    const selected = document.querySelector('input[name="army-message-target"]:checked');
-    return normalizeArmyTarget(selected?.value);
+    return normalizeArmyTarget(selectedArmyMessageTarget);
 }
 
 function setSelectedArmyTarget(target) {
     const normalized = normalizeArmyTarget(target);
-    const input = document.querySelector(`input[name="army-message-target"][value="${normalized}"]`);
-    if (input) input.checked = true;
+    selectedArmyMessageTarget = normalized;
+    document.querySelectorAll('.message-prompts button[data-target]').forEach(button => {
+        const isActive = normalizeArmyTarget(button.dataset.target) === normalized;
+        button.classList.toggle('is-active', isActive);
+        button.setAttribute('aria-pressed', String(isActive));
+    });
 }
 
 function normalizeArmyTarget(target) {
