@@ -311,6 +311,46 @@ const btsUniverseFortunes = [
     }
 ];
 
+// 音樂設定
+function forceStopMusic() {
+    if (!bgMusic) return;
+
+    bgMusic.pause();
+    bgMusic.currentTime = 0;
+}
+
+function handleMusicVisibility() {
+    if (!bgMusic) return;
+
+    if (document.hidden) {
+        bgMusic.pause();
+        bgMusic.currentTime = 0;
+        return;
+    }
+
+    bgMusic.muted = false;
+
+    // iOS 安全播放模式
+    const tryPlay = () => {
+        const p = bgMusic.play();
+        if (p !== undefined) {
+            p.catch(() => {
+                // iOS 如果失敗，等下一次 user interaction
+                console.log("iOS play blocked, waiting gesture");
+            });
+        }
+    };
+
+    // 確保 ready
+    if (bgMusic.readyState >= 2) {
+        tryPlay();
+    } else {
+        bgMusic.addEventListener("canplay", tryPlay, { once: true });
+    }
+}
+
+document.addEventListener("visibilitychange", handleMusicVisibility);
+
 // ─── 第二張圖：造型籤枝的線上網址 ───
 const stickImages = [
                  "https://cdn.phototourl.com/free/2026-05-22-0efee3fc-92ff-480d-94f5-fae4e7f04cf3.png",   
